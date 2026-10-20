@@ -34,8 +34,6 @@ impl NotificationHandle {
         F: FnOnce(&str),
     {
         log::trace!("wait_for_action");
-        // let n = build_mac_notification(&self.notification);
-        // n.wait_for_click(true);
         let Some(notification) = self.notification.take() else {
             return;
         };
@@ -221,7 +219,9 @@ fn send_mac_notification(
             n.close_button("Close");
         }
     }
-    n.asynchronous(asynchronous);
+    // Without a button, the backend only waits for a response when click waiting
+    // is enabled. Dropped handles and scheduled notifications must remain async.
+    n.wait_for_click(!asynchronous).asynchronous(asynchronous);
 
     if let Some(ref image_path) = notification.path_to_image {
         n.content_image(image_path);
